@@ -14,7 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/auth-context';
-import { redirect } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 
 interface Task {
   id: string;
@@ -27,6 +27,7 @@ interface Task {
 }
 
 export default function ListTaskPage() {
+  const router = useRouter();
   const { isAuthenticated, user } = useAuth();
   const [showCheckout, setShowCheckout] = useState(false);
   const [paymentSubmitted, setPaymentSubmitted] = useState(false);
@@ -211,8 +212,14 @@ export default function ListTaskPage() {
     reader.readAsDataURL(paymentProof);
   };
 
+  useEffect(() => {
+    if (!isAuthenticated) {
+      router.push('/');
+    }
+  }, [isAuthenticated, router]);
+
   if (!isAuthenticated) {
-    redirect('/');
+    return null;
   }
 
   return (

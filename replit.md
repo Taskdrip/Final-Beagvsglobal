@@ -27,8 +27,12 @@ A Pi Network-powered secure marketplace for buying, selling, and shipping goods 
 - `app/marketplace/` — Product listings
 - `app/dashboard/` — User dashboard (listings, orders, messages, settings)
 - `app/feed/` — Community feed with seeded posts, social interactions
+- `app/ship-with-pi/` — Shipping request form with login gate + My Requests history
+- `app/earn/` — Earn Pi tasks (seeds 8 default tasks to localStorage on first visit)
+- `app/messages/` — Real-time-ish messaging with client-side redirect guard
 - `components/hero-slider.tsx` — Full-screen hero slider with Unsplash background images (5 slides)
-- `components/feature-slider.tsx` — Legacy slider (no longer used on home page)
+- `components/auth/auth-modal.tsx` — Sign In / Sign Up dialog (email+password, role select)
+- `contexts/auth-context.tsx` — Auth state, handleAuthSuccess with proper error toasts
 - `components/` — Shared components (navigation, footer, admin, auth)
 - `contexts/` — Auth and Cart React contexts
 - `lib/` — Utilities, mock data, types, config
@@ -40,9 +44,11 @@ A Pi Network-powered secure marketplace for buying, selling, and shipping goods 
 
 - **LocalStorage-based persistence**: All user data, auth sessions, feed posts, and cart live in browser localStorage (no backend DB)
 - **Feed seeding**: `app/feed/page.tsx` seeds 5 default community posts to localStorage on first visit (only if empty)
-- **Hero slider**: Full-screen hero replaces old static hero + removed FeatureSlider; uses Unsplash real background images with 6s autoplay, progress bar, dot indicators
-- **Admin auth**: Separate credential check in `/admin` (email+password hardcoded) independent of main auth flow
-- **Pi Network**: Integration stubs in `lib/pi-network-integration.ts`; not fully live
+- **Earn tasks seeding**: `app/earn/page.tsx` seeds 8 default tasks on first visit if `earn_tasks` is empty
+- **Hero slider**: Full-screen hero replaces old static hero; uses Unsplash real background images with 6s autoplay, progress bar, dot indicators
+- **Admin auth**: Accepts both `BEAGVSglobal.2024#` and legacy `TRInity.123` as admin passwords; admin role enforced in `handleAuthSuccess`
+- **Pi Network button**: Shows "coming soon" toast — not wired to real Pi SDK (stubs in `lib/pi-network-integration.ts`)
+- **Client-side redirects**: Protected pages (`/dashboard`, `/messages`, `/list-task`) use `useEffect` + `router.push` (not server `redirect()`)
 - **Legacy peer deps**: `date-fns@3` required due to `react-day-picker@8.10.1` peer constraint
 - **Railway deployment**: `railway.toml` + `nixpacks.toml` configured; `output: 'standalone'` enabled only when `RAILWAY_ENVIRONMENT` env var is set
 
@@ -50,11 +56,13 @@ A Pi Network-powered secure marketplace for buying, selling, and shipping goods 
 
 - Marketplace for goods, services, and real estate
 - Pi Network escrow-protected payments
-- Integrated shipping with tracking
+- Integrated shipping with tracking; Ship with Pi page shows login banner + My Requests for signed-in users
 - Full-screen hero slider with 5 slides (Marketplace, Earn Pi, Escrow, Community, Shipping)
 - Community feed: create posts, like, comment, tip Pi, share (Facebook/Twitter/link copy)
+- Earn Pi tasks (8 seeded tasks with difficulty, time estimate, and Pi reward)
 - Feed, Discover, Earn Pi tasks, Leaderboard
 - Admin dashboard: users, listings, disputes, escrow, news, shipping
+- Auth modal: email sign-in/sign-up with role selection (buyer/seller), duplicate email detection, password error toasts
 
 ## User preferences
 
@@ -68,6 +76,8 @@ A Pi Network-powered secure marketplace for buying, selling, and shipping goods 
 - Admin panel at `/admin` has its own independent login (not tied to regular user auth)
 - ChunkLoadErrors after server restart are transient — hard refresh clears them
 - `duration-[8000ms]` Tailwind class is ambiguous (harmless warning from `hero-slider.tsx`)
+- Auth context `handleAuthSuccess` shows toast errors and keeps modal open on wrong password (does NOT silently close)
+- Earn tasks / feed posts are seeded client-side in useEffect — initial SSR render shows empty, populates on hydration
 
 ## Pointers
 

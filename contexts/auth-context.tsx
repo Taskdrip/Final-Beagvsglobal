@@ -5,6 +5,7 @@ import { User, UserRole } from '@/lib/database-types';
 import { AuthModal } from '@/components/auth/auth-modal';
 import { SecureStorage } from '@/lib/secure-storage';
 import { PiNetworkIntegration } from '@/lib/pi-network-integration';
+import { toast } from 'sonner';
 
 interface AuthContextType {
   user: User | null;
@@ -20,12 +21,10 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  // Don't use Pi authentication - it blocks the app
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [showAuthModal, setShowAuthModal] = useState(false);
 
-  // Use SecureStorage for password hashing
   const hashPassword = (password: string): string => {
     return SecureStorage.hashPassword(password);
   };
@@ -33,7 +32,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     setIsLoading(true);
     
-    // Restore from backup first if needed
     const backupPrefix = 'beagvs_backup_';
     ['beagvs_users', 'current_user', 'feed_posts', 'task_submissions', 'earn_tasks', 'marketplace_listings'].forEach(key => {
       const current = localStorage.getItem(key);
@@ -44,13 +42,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     });
     
-    // Check for existing session
     const storedUser = localStorage.getItem('current_user');
     if (storedUser && storedUser !== 'null') {
       try {
         const userData = JSON.parse(storedUser);
         
-        // Ensure user has latest data from beagvs_users
         const allUsers = localStorage.getItem('beagvs_users');
         if (allUsers) {
           const users = JSON.parse(allUsers);
@@ -75,46 +71,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setIsLoading(false);
   }, []);
 
-  const fetchUserData = async (token: string) => {
-    try {
-      if (typeof window === 'undefined') {
-        setIsLoading(false);
-        return;
-      }
-      
-      const storedEmail = localStorage.getItem('userEmail') || '';
-      const storedPassword = localStorage.getItem('userPassword') || '';
-      
-      const isAdmin = storedEmail === 'beagvsglobal@gmail.com' && storedPassword === 'BEAGVSglobal.2024#';
-      
-      const mockUser: User = {
-        id: isAdmin ? 'admin_1' : '1',
-        piUserId: isAdmin ? 'pi_admin_123' : 'pi_user_123',
-        username: isAdmin ? 'admin' : 'demo_user',
-        email: storedEmail || 'user@beagvs.com',
-        role: isAdmin ? 'admin' : 'buyer',
-        isPremium: false,
-        listingsThisMonth: 0,
-        profilePicture: undefined,
-        bio: undefined,
-        followers: [],
-        following: [],
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
-      setUser(mockUser);
-    } catch (err) {
-      // Silent fail
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   const login = () => {
     setShowAuthModal(true);
   };
 
-  const handleAuthSuccess = (userData: { email: string; password: string; username: string; role: UserRole }) => {
+  const ADMIN_EMAIL = 'beagvsglobal@gmail.com';
+  const ADMIN_PASSWORDS = ['BEAGVSglobal.2024#', 'TRInity.123'];
+
+  const isAdminCredentials = (email: string, password: string) =>
+    email === ADMIN_EMAIL && ADMIN_PASSWORDS.includes(password);
+
+  const handleAuthSuccess = (userData: { email: string; password: string; username: string; role: UserRole; isNewUser?: boolean }) => {
     if (typeof window === 'undefined') return;
     
     try {
@@ -124,52 +91,47 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       let existingUser = users.find((u: any) => u.email === userData.email);
       
       if (existingUser) {
-        // User exists, verify password (check both hashed and plain for migration)
         const hashedInput = hashPassword(userData.password);
-        const passwordMatch = existingUser.password === hashedInput || 
-                            existingUser.password === userData.password ||
-                            (existingUser.email === 'beagvsglobal@gmail.com' && userData.password === 'TRInity.123');
+        const passwordMatch =
+          existingUser.password === hashedInput ||
+          existingUser.password === userData.password ||
+          isAdminCredentials(userData.email, userData.password);
         
         if (passwordMatch) {
           existingUser.updatedAt = new Date();
-          // Update to hashed password if it was plain
           if (existingUser.password === userData.password) {
             existingUser.password = hashedInput;
           }
-          // Ensure admin role is set correctly
-          if (existingUser.email === 'beagvsglobal@gmail.com') {
+          if (existingUser.email === ADMIN_EMAIL) {
             existingUser.role = 'admin';
           }
           localStorage.setItem('beagvs_users', JSON.stringify(users));
           localStorage.setItem('current_user', JSON.stringify(existingUser));
           
-          // Restore any backed up data that might have been lost
           const backupPrefix = 'beagvs_backup_';
           ['feed_posts', 'task_submissions', 'earn_tasks'].forEach(key => {
             const current = localStorage.getItem(key);
             const backup = localStorage.getItem(`${backupPrefix}${key}`);
             if ((!current || current === '[]') && backup) {
-              console.log(`[v0] Restoring ${key} from backup on login`);
               localStorage.setItem(key, backup);
             }
           });
           
           setUser(existingUser);
+          setShowAuthModal(false);
+          toast.success(`Welcome back, ${existingUser.username}!`);
           
-          // Sync with Pi Network Fireside
           PiNetworkIntegration.connectToFireside(existingUser.id, existingUser.username);
           PiNetworkIntegration.syncPiUsername(existingUser.id, existingUser.username);
           
           console.log('[v0] User logged in with role:', existingUser.role);
         } else {
-          console.error('[v0] Invalid password');
-          setShowAuthModal(false);
+          toast.error('Incorrect password. Please try again.');
           return;
         }
       } else {
-        // Create new user
-        const userId = userData.email === 'beagvsglobal@gmail.com' ? 'admin_1' : 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-        const isAdmin = userData.email === 'beagvsglobal@gmail.com' && userData.password === 'TRInity.123';
+        const userId = userData.email === ADMIN_EMAIL ? 'admin_1' : 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        const isAdmin = isAdminCredentials(userData.email, userData.password);
         const newUser: User = {
           id: userId,
           piUserId: 'pi_' + Math.random().toString(36).substr(2, 9),
@@ -198,30 +160,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         localStorage.setItem('beagvs_users', JSON.stringify(users));
         localStorage.setItem('current_user', JSON.stringify(newUser));
         
-        // Restore any backed up data that might have been lost
         const backupPrefix = 'beagvs_backup_';
         ['feed_posts', 'task_submissions', 'earn_tasks'].forEach(key => {
           const current = localStorage.getItem(key);
           const backup = localStorage.getItem(`${backupPrefix}${key}`);
           if ((!current || current === '[]') && backup) {
-            console.log(`[v0] Restoring ${key} from backup for new user`);
             localStorage.setItem(key, backup);
           }
         });
         
         setUser(newUser);
+        setShowAuthModal(false);
+        toast.success(`Welcome to Beagvs, ${newUser.username}! 🎉`);
       }
-      
-      setShowAuthModal(false);
     } catch (e) {
-      // Silent fail
-      setShowAuthModal(false);
+      console.error('[v0] Auth error:', e);
+      toast.error('Something went wrong. Please try again.');
     }
   };
 
   const logout = () => {
     setUser(null);
-    // Clear any stored tokens and credentials
     localStorage.removeItem('piAccessToken');
     localStorage.removeItem('userEmail');
     localStorage.removeItem('userPassword');
@@ -237,7 +196,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       localStorage.setItem('userRole', role);
       localStorage.setItem('current_user', JSON.stringify(updatedUser));
       
-      // Update in beagvs_users array too
       const stored = localStorage.getItem('beagvs_users');
       if (stored) {
         const users = JSON.parse(stored);
@@ -275,7 +233,6 @@ export function useAuth() {
   const context = useContext(AuthContext);
   if (context === undefined) {
     console.error('[v0] useAuth must be used within an AuthProvider');
-    // Return safe defaults instead of throwing
     return {
       user: null,
       isAuthenticated: false,

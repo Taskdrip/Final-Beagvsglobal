@@ -1,23 +1,26 @@
 "use client";
 
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/auth-context';
-import { redirect } from 'next/navigation';
 import { AdminDashboard } from '@/components/dashboard/admin-dashboard';
 import { SellerDashboard } from '@/components/dashboard/seller-dashboard';
 import { BuyerDashboard } from '@/components/dashboard/buyer-dashboard';
 
 export default function DashboardPage() {
-  const { user, isAuthenticated } = useAuth();
+  const router = useRouter();
+  const { user, isAuthenticated, isLoading } = useAuth();
 
-  if (!isAuthenticated) {
-    redirect('/');
-  }
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      router.push('/');
+    }
+  }, [isLoading, isAuthenticated, router]);
 
-  if (!user) {
+  if (isLoading || !isAuthenticated || !user) {
     return null;
   }
 
-  // Render role-specific dashboard
   if (user.role === 'admin') {
     return (
       <div className="container mx-auto max-w-7xl px-4 py-8">
@@ -34,7 +37,6 @@ export default function DashboardPage() {
     );
   }
 
-  // Default to buyer dashboard
   return (
     <div className="container mx-auto max-w-7xl px-4 py-8">
       <BuyerDashboard username={user.username} />

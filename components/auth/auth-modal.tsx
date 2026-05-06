@@ -45,33 +45,26 @@ export function AuthModal({ isOpen, onClose, onAuthSuccess, onPiAuth }: AuthModa
     setIsLoading(true);
 
     try {
-      // Validate inputs
       if (!signInEmail || !signInPassword) {
         toast.error('Please fill in all fields');
         setIsLoading(false);
         return;
       }
 
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await new Promise(resolve => setTimeout(resolve, 800));
 
-      // Store credentials and authenticate
-      localStorage.setItem('userEmail', signInEmail);
-      localStorage.setItem('userPassword', signInPassword);
-      
-      // Retrieve stored role or default to buyer
       const storedRole = localStorage.getItem('userRole') as UserRole || 'buyer';
       const storedUsername = localStorage.getItem('userName') || signInEmail.split('@')[0];
+
+      localStorage.setItem('userEmail', signInEmail);
+      localStorage.setItem('userPassword', signInPassword);
       
       onAuthSuccess({
         email: signInEmail,
         password: signInPassword,
         username: storedUsername,
-        role: storedRole
+        role: storedRole,
       });
-
-      toast.success('Signed in successfully!');
-      onClose();
     } catch (error) {
       toast.error('Sign in failed. Please try again.');
     } finally {
@@ -84,7 +77,6 @@ export function AuthModal({ isOpen, onClose, onAuthSuccess, onPiAuth }: AuthModa
     setIsLoading(true);
 
     try {
-      // Validate inputs
       if (!signUpEmail || !signUpPassword || !signUpUsername) {
         toast.error('Please fill in all fields');
         setIsLoading(false);
@@ -103,10 +95,18 @@ export function AuthModal({ isOpen, onClose, onAuthSuccess, onPiAuth }: AuthModa
         return;
       }
 
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const existingUsers = JSON.parse(localStorage.getItem('beagvs_users') || '[]');
+      const emailTaken = existingUsers.find((u: any) => u.email === signUpEmail);
+      if (emailTaken) {
+        toast.error('An account with this email already exists. Please sign in.');
+        setActiveTab('signin');
+        setSignInEmail(signUpEmail);
+        setIsLoading(false);
+        return;
+      }
 
-      // Store credentials and authenticate
+      await new Promise(resolve => setTimeout(resolve, 800));
+
       localStorage.setItem('userEmail', signUpEmail);
       localStorage.setItem('userPassword', signUpPassword);
       localStorage.setItem('userName', signUpUsername);
@@ -116,11 +116,8 @@ export function AuthModal({ isOpen, onClose, onAuthSuccess, onPiAuth }: AuthModa
         email: signUpEmail,
         password: signUpPassword,
         username: signUpUsername,
-        role: signUpRole
+        role: signUpRole,
       });
-
-      toast.success('Account created successfully!');
-      onClose();
     } catch (error) {
       toast.error('Sign up failed. Please try again.');
     } finally {
@@ -129,8 +126,7 @@ export function AuthModal({ isOpen, onClose, onAuthSuccess, onPiAuth }: AuthModa
   };
 
   const handlePiAuth = () => {
-    onPiAuth();
-    onClose();
+    toast.info('Pi Network authentication is coming soon! Please use email sign-in for now.');
   };
 
   return (
@@ -202,6 +198,17 @@ export function AuthModal({ isOpen, onClose, onAuthSuccess, onPiAuth }: AuthModa
                   'Sign In'
                 )}
               </Button>
+
+              <p className="text-center text-sm text-muted-foreground">
+                Don&apos;t have an account?{' '}
+                <button
+                  type="button"
+                  className="text-primary hover:underline font-medium"
+                  onClick={() => setActiveTab('signup')}
+                >
+                  Sign up
+                </button>
+              </p>
             </form>
 
             <div className="relative">
@@ -346,6 +353,17 @@ export function AuthModal({ isOpen, onClose, onAuthSuccess, onPiAuth }: AuthModa
                   'Create Account'
                 )}
               </Button>
+
+              <p className="text-center text-sm text-muted-foreground">
+                Already have an account?{' '}
+                <button
+                  type="button"
+                  className="text-primary hover:underline font-medium"
+                  onClick={() => setActiveTab('signin')}
+                >
+                  Sign in
+                </button>
+              </p>
             </form>
 
             <div className="relative">
