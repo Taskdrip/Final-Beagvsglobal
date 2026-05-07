@@ -8,13 +8,14 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/contexts/auth-context';
-import { redirect, useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { ReviewDialog } from '@/components/reviews/review-dialog';
 
 export default function OrdersPage() {
   const { user, isAuthenticated } = useAuth();
   const searchParams = useSearchParams();
+  const router = useRouter();
 
   useEffect(() => {
     if (searchParams.get('success') === 'true') {
@@ -25,8 +26,14 @@ export default function OrdersPage() {
     }
   }, [searchParams]);
 
+  useEffect(() => {
+    if (!isAuthenticated) {
+      router.push('/');
+    }
+  }, [isAuthenticated, router]);
+
   if (!isAuthenticated) {
-    redirect('/');
+    return null;
   }
 
   // Mock orders data

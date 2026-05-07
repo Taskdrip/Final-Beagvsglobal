@@ -37,13 +37,18 @@ export class PiPriceTracker {
    * Fetch fresh Pi price from API
    */
   private static async fetchPrice(): Promise<PiPriceData> {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 5000);
+
     try {
       console.log('[v0] Fetching Pi coin price...');
 
-      // Try CoinGecko API (free, no API key needed)
       const response = await fetch(
-        'https://api.coingecko.com/api/v3/simple/price?ids=pi-network&vs_currencies=usd,btc,eth&include_24hr_change=true&include_24hr_vol=true'
+        'https://api.coingecko.com/api/v3/simple/price?ids=pi-network&vs_currencies=usd,btc,eth&include_24hr_change=true&include_24hr_vol=true',
+        { signal: controller.signal }
       );
+
+      clearTimeout(timeout);
 
       if (response.ok) {
         const data = await response.json();
@@ -64,11 +69,11 @@ export class PiPriceTracker {
         }
       }
 
-      // Fallback: Try CoinMarketCap simulation
       console.log('[v0] Primary API failed, using simulated price');
       return this.getSimulatedPrice();
     } catch (error) {
-      console.error('[v0] Error fetching Pi price:', error);
+      clearTimeout(timeout);
+      console.log('[v0] Pi price fetch error, using simulated price');
       return this.getSimulatedPrice();
     }
   }

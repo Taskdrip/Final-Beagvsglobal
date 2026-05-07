@@ -32,7 +32,7 @@ export function AdminBootstrap() {
           
           // Update current user if logged in as admin
           const currentUser = localStorage.getItem('current_user');
-          if (currentUser) {
+          if (currentUser && currentUser !== 'null') {
             const current = JSON.parse(currentUser);
             if (current.email === 'beagvsglobal@gmail.com') {
               current.role = 'admin';

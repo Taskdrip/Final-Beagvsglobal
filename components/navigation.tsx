@@ -2,9 +2,10 @@
 
 import Link from 'next/link';
 import { useState } from 'react';
-import { Menu, ShoppingBag, ShoppingCart, User, LogOut, Settings, MessageSquare, Package, Truck, HelpCircle } from 'lucide-react';
+import { Menu, ShoppingBag, ShoppingCart, User, LogOut, Settings, MessageSquare, Package, HelpCircle, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useAuth } from '@/contexts/auth-context';
 import { useCart } from '@/contexts/cart-context';
 import { PiPriceTicker } from './pi-price-ticker';
@@ -80,6 +81,29 @@ export function Navigation() {
             <Link href="/earn" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
               Earn Pi
             </Link>
+
+            {/* More dropdown for secondary pages */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="flex items-center gap-1 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+                  More <ChevronDown className="h-3 w-3" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start">
+                <DropdownMenuItem asChild>
+                  <Link href="/leaderboard">Leaderboard</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/news">News</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/about">About</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/contact">Contact</Link>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
             
             {/* Dashboard Links - Only when logged in */}
             {isAuthenticated && (

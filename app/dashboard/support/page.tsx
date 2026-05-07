@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/auth-context';
+import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,7 +11,6 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Send, MessageSquare, Clock, CheckCircle } from 'lucide-react';
 import { toast } from 'sonner';
-import { redirect } from 'next/navigation';
 
 interface Ticket {
   id: string;
@@ -29,11 +29,18 @@ interface Ticket {
 
 export default function SupportPage() {
   const { user, isAuthenticated } = useAuth();
+  const router = useRouter();
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
   const [subject, setSubject] = useState('');
   const [message, setMessage] = useState('');
   const [replyMessage, setReplyMessage] = useState('');
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      router.push('/');
+    }
+  }, [isAuthenticated, router]);
 
   useEffect(() => {
     if (typeof window !== 'undefined' && user) {
@@ -50,9 +57,7 @@ export default function SupportPage() {
     }
   }, [user]);
 
-  if (!isAuthenticated) {
-    redirect('/');
-  }
+  if (!isAuthenticated) return null;
 
   const handleCreateTicket = () => {
     if (!subject.trim() || !message.trim()) {

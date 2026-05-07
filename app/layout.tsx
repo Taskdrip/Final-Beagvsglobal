@@ -9,6 +9,7 @@ import { Footer } from "@/components/footer";
 import { Toaster } from "@/components/ui/sonner";
 import { AdminBootstrap } from "@/components/admin-bootstrap";
 import { AdminResetButton } from "@/components/admin-reset-button";
+import { ChunkErrorHandler } from "@/components/chunk-error-handler";
 import "@/lib/data-persistence";
 import "./globals.css";
 
@@ -45,6 +46,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         >
           <AuthProvider>
             <CartProvider>
+              <ChunkErrorHandler />
               <AdminBootstrap />
               <AdminResetButton />
               <div className="flex min-h-screen flex-col">

@@ -15,11 +15,12 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/contexts/auth-context';
-import { redirect } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 
 export default function ProfilePage() {
   const { user, isAuthenticated } = useAuth();
+  const router = useRouter();
   const [username, setUsername] = useState(user?.username || '');
   const [bio, setBio] = useState(user?.bio || '');
   const [website, setWebsite] = useState(user?.website || '');
@@ -36,9 +37,11 @@ export default function ProfilePage() {
   const [instagram, setInstagram] = useState(user?.socialLinks?.instagram || '');
   const [linkedin, setLinkedin] = useState(user?.socialLinks?.linkedin || '');
 
-  if (!isAuthenticated) {
-    redirect('/');
-  }
+  useEffect(() => {
+    if (!isAuthenticated) {
+      router.push('/');
+    }
+  }, [isAuthenticated, router]);
 
   // Load user's posts
   useEffect(() => {
@@ -55,6 +58,8 @@ export default function ProfilePage() {
       }
     }
   }, [user]);
+
+  if (!isAuthenticated) return null;
 
   const handleSave = () => {
     if (!user) return;

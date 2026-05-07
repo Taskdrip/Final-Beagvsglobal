@@ -7,11 +7,12 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/contexts/auth-context';
-import { redirect } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 
 export default function MyListingsPage() {
   const { user, isAuthenticated } = useAuth();
+  const router = useRouter();
   const [listings, setListings] = useState([
     {
       id: '1',
@@ -48,9 +49,13 @@ export default function MyListingsPage() {
     },
   ]);
 
-  if (!isAuthenticated) {
-    redirect('/marketplace');
-  }
+  useEffect(() => {
+    if (!isAuthenticated) {
+      router.push('/marketplace');
+    }
+  }, [isAuthenticated, router]);
+
+  if (!isAuthenticated) return null;
 
   // Premium account status
   const isPremium = user?.isPremium || false;

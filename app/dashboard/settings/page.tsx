@@ -14,7 +14,6 @@ import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/contexts/auth-context';
-import { redirect } from 'next/navigation';
 import { toast } from 'sonner';
 
 export default function SettingsPage() {
@@ -56,9 +55,13 @@ export default function SettingsPage() {
     }
   }, [user]);
 
-  if (!isAuthenticated) {
-    redirect('/');
-  }
+  useEffect(() => {
+    if (!isAuthenticated) {
+      router.push('/');
+    }
+  }, [isAuthenticated, router]);
+
+  if (!isAuthenticated) return null;
 
   const handleSaveProfile = () => {
     if (!user) return;
