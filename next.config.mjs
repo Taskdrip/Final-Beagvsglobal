@@ -21,19 +21,6 @@ const nextConfig = {
     '*.repl.co',
     ...(process.env.REPLIT_DEV_DOMAIN ? [process.env.REPLIT_DEV_DOMAIN] : []),
   ],
-  async headers() {
-    if (process.env.NODE_ENV !== 'production') {
-      return [
-        {
-          source: '/_next/static/:path*',
-          headers: [
-            { key: 'Cache-Control', value: 'no-store, must-revalidate' },
-          ],
-        },
-      ]
-    }
-    return []
-  },
 }
 
 export default nextConfig

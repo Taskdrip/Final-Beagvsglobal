@@ -343,7 +343,7 @@ export default function FeedPage() {
           <Card className="mb-6 bg-primary/5 border-primary/20">
             <CardContent className="py-5 text-center">
               <p className="text-muted-foreground mb-3">Login to post, like, comment and tip Pi</p>
-              <Button size="sm" asChild><a href="/login">Login to Join</a></Button>
+              <Button size="sm" onClick={() => auth?.login?.()}>Login to Join</Button>
             </CardContent>
           </Card>
         )}

@@ -89,37 +89,69 @@ export function HeroSlider() {
   const [current, setCurrent] = useState(0);
   const [progress, setProgress] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
-  const [direction, setDirection] = useState<'next' | 'prev'>('next');
+  const isPausedRef = useRef(false);
+  const currentRef = useRef(0);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const progressRef = useRef<NodeJS.Timeout | null>(null);
 
-  const goTo = useCallback((index: number, dir: 'next' | 'prev' = 'next') => {
-    setDirection(dir);
+  const goTo = useCallback((index: number) => {
+    currentRef.current = index;
     setCurrent(index);
     setProgress(0);
   }, []);
 
   const next = useCallback(() => {
-    goTo((current + 1) % SLIDES.length, 'next');
-  }, [current, goTo]);
+    const nextIndex = (currentRef.current + 1) % SLIDES.length;
+    goTo(nextIndex);
+  }, [goTo]);
 
   const prev = useCallback(() => {
-    goTo((current - 1 + SLIDES.length) % SLIDES.length, 'prev');
-  }, [current, goTo]);
+    const prevIndex = (currentRef.current - 1 + SLIDES.length) % SLIDES.length;
+    goTo(prevIndex);
+  }, [goTo]);
 
+  // Auto-advance timer — only depends on isPaused, never on current
   useEffect(() => {
-    if (isPaused) return;
-    timerRef.current = setInterval(next, INTERVAL);
-    return () => { if (timerRef.current) clearInterval(timerRef.current); };
-  }, [isPaused, next]);
+    isPausedRef.current = isPaused;
 
+    const startTimer = () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+      timerRef.current = setInterval(() => {
+        if (!isPausedRef.current) {
+          const nextIndex = (currentRef.current + 1) % SLIDES.length;
+          currentRef.current = nextIndex;
+          setCurrent(nextIndex);
+          setProgress(0);
+        }
+      }, INTERVAL);
+    };
+
+    if (!isPaused) {
+      startTimer();
+    } else {
+      if (timerRef.current) clearInterval(timerRef.current);
+    }
+
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+    };
+  }, [isPaused]);
+
+  // Progress bar animation
   useEffect(() => {
+    if (progressRef.current) clearInterval(progressRef.current);
     if (isPaused) return;
-    setProgress(0);
+
     const start = Date.now();
-    const tick = setInterval(() => {
-      setProgress(Math.min(((Date.now() - start) / INTERVAL) * 100, 100));
+    progressRef.current = setInterval(() => {
+      const elapsed = Date.now() - start;
+      const pct = Math.min((elapsed / INTERVAL) * 100, 100);
+      setProgress(pct);
     }, 30);
-    return () => clearInterval(tick);
+
+    return () => {
+      if (progressRef.current) clearInterval(progressRef.current);
+    };
   }, [current, isPaused]);
 
   const slide = SLIDES[current];
@@ -131,6 +163,7 @@ export function HeroSlider() {
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
     >
+      {/* Background slides */}
       {SLIDES.map((s, i) => (
         <div
           key={s.id}
@@ -138,17 +171,15 @@ export function HeroSlider() {
           style={{ opacity: i === current ? 1 : 0, zIndex: i === current ? 1 : 0 }}
         >
           <div
-            className="absolute inset-0 bg-cover bg-center transition-transform duration-[8000ms] ease-out"
-            style={{
-              backgroundImage: `url(${s.image})`,
-              transform: i === current ? 'scale(1.04)' : 'scale(1)',
-            }}
+            className="absolute inset-0 bg-cover bg-center"
+            style={{ backgroundImage: `url(${s.image})` }}
           />
           <div className={`absolute inset-0 bg-gradient-to-r ${s.gradient}`} />
           <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
         </div>
       ))}
 
+      {/* Content */}
       <div className="relative z-10 flex items-center min-h-screen pt-20">
         <div className="container mx-auto px-6 md:px-16">
           <div className="max-w-3xl">
@@ -163,7 +194,7 @@ export function HeroSlider() {
 
             <h1
               key={`title-${current}`}
-              className="text-5xl md:text-7xl lg:text-8xl font-bold text-white mb-6 leading-tight animate-in fade-in slide-in-from-bottom-8 duration-600"
+              className="text-5xl md:text-7xl lg:text-8xl font-bold text-white mb-6 leading-tight animate-in fade-in slide-in-from-bottom-8 duration-500"
             >
               {slide.title}{' '}
               <span style={{ color: slide.accent }}>{slide.titleHighlight}</span>
@@ -171,14 +202,16 @@ export function HeroSlider() {
 
             <p
               key={`sub-${current}`}
-              className="text-lg md:text-xl text-white/75 mb-10 max-w-2xl leading-relaxed animate-in fade-in slide-in-from-bottom-8 duration-600 delay-100"
+              className="text-lg md:text-xl text-white/75 mb-10 max-w-2xl leading-relaxed animate-in fade-in slide-in-from-bottom-8 duration-500"
+              style={{ animationDelay: '100ms' }}
             >
               {slide.subtitle}
             </p>
 
             <div
               key={`cta-${current}`}
-              className="flex flex-col sm:flex-row gap-4 animate-in fade-in slide-in-from-bottom-8 duration-600 delay-200"
+              className="flex flex-col sm:flex-row gap-4 animate-in fade-in slide-in-from-bottom-8 duration-500"
+              style={{ animationDelay: '200ms' }}
             >
               <Button
                 size="lg"
@@ -216,6 +249,7 @@ export function HeroSlider() {
         </div>
       </div>
 
+      {/* Prev / Next arrows */}
       <button
         onClick={prev}
         className="absolute left-4 md:left-8 top-1/2 -translate-y-1/2 z-20 bg-white/10 hover:bg-white/25 backdrop-blur-md text-white p-3 md:p-4 rounded-full transition-all duration-300 hover:scale-110 border border-white/20"
@@ -231,14 +265,14 @@ export function HeroSlider() {
         <ChevronRight className="h-5 w-5 md:h-6 md:w-6" />
       </button>
 
+      {/* Dot indicators + counter */}
       <div className="absolute bottom-10 left-0 right-0 z-20 flex flex-col items-center gap-4">
         <div className="flex items-center gap-3">
           {SLIDES.map((s, i) => (
             <button
               key={i}
               onClick={() => goTo(i)}
-              className="group relative flex items-center justify-center"
-              aria-label={`Slide ${i + 1}`}
+              aria-label={`Go to slide ${i + 1}`}
             >
               <div
                 className="rounded-full transition-all duration-500"
@@ -256,13 +290,15 @@ export function HeroSlider() {
         </div>
       </div>
 
+      {/* Progress bar */}
       <div className="absolute bottom-0 left-0 right-0 z-20 h-[3px] bg-white/10">
         <div
-          className="h-full transition-none"
+          className="h-full"
           style={{ width: `${progress}%`, backgroundColor: slide.accent, transition: 'width 30ms linear' }}
         />
       </div>
 
+      {/* Pause/Resume */}
       <div className="absolute top-8 right-8 z-20">
         <button
           onClick={() => setIsPaused(p => !p)}
