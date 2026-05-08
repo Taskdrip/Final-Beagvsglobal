@@ -2,45 +2,11 @@
 
 export class DataPersistence {
   private static readonly BACKUP_PREFIX = 'beagvs_backup_';
-  
-  /**
-   * Backup critical data before updates
-   */
+  private static initialized = false;
+
   static backupData(): void {
     if (typeof window === 'undefined') return;
-    
-    const criticalKeys = [
-      'beagvs_users',
-      'current_user', 
-      'feed_posts',
-      'task_submissions',
-      'earn_tasks',
-      'marketplace_listings',
-      'user_profiles',
-      'shipping_orders'
-    ];
-    
-    try {
-      criticalKeys.forEach(key => {
-        const data = localStorage.getItem(key);
-        if (data) {
-          const backupKey = `${this.BACKUP_PREFIX}${key}`;
-          localStorage.setItem(backupKey, data);
-        }
-      });
-      
-      console.log('[v0] Data backup completed');
-    } catch (error) {
-      console.error('[v0] Backup failed:', error);
-    }
-  }
-  
-  /**
-   * Restore data from backup if main data is missing
-   */
-  static restoreIfNeeded(): void {
-    if (typeof window === 'undefined') return;
-    
+
     const criticalKeys = [
       'beagvs_users',
       'current_user',
@@ -49,16 +15,40 @@ export class DataPersistence {
       'earn_tasks',
       'marketplace_listings',
       'user_profiles',
-      'shipping_orders'
+      'shipping_orders',
     ];
-    
+
     try {
-      criticalKeys.forEach(key => {
+      criticalKeys.forEach((key) => {
         const data = localStorage.getItem(key);
-        const backupKey = `${this.BACKUP_PREFIX}${key}`;
-        const backup = localStorage.getItem(backupKey);
-        
-        // Restore from backup if main data is missing or empty
+        if (data) {
+          localStorage.setItem(`${this.BACKUP_PREFIX}${key}`, data);
+        }
+      });
+      console.log('[v0] Data backup completed');
+    } catch (error) {
+      console.error('[v0] Backup failed:', error);
+    }
+  }
+
+  static restoreIfNeeded(): void {
+    if (typeof window === 'undefined') return;
+
+    const criticalKeys = [
+      'beagvs_users',
+      'current_user',
+      'feed_posts',
+      'task_submissions',
+      'earn_tasks',
+      'marketplace_listings',
+      'user_profiles',
+      'shipping_orders',
+    ];
+
+    try {
+      criticalKeys.forEach((key) => {
+        const data = localStorage.getItem(key);
+        const backup = localStorage.getItem(`${this.BACKUP_PREFIX}${key}`);
         if ((!data || data === '[]') && backup) {
           console.log(`[v0] Restoring ${key} from backup`);
           localStorage.setItem(key, backup);
@@ -68,56 +58,45 @@ export class DataPersistence {
       console.error('[v0] Restore failed:', error);
     }
   }
-  
-  /**
-   * Initialize data persistence system
-   */
+
   static initialize(): void {
     if (typeof window === 'undefined') return;
-    
-    // Restore any missing data on load
+    if (DataPersistence.initialized) return;
+    DataPersistence.initialized = true;
+
     this.restoreIfNeeded();
-    
-    // Backup data on every change to critical keys
-    const criticalKeys = ['feed_posts', 'task_submissions', 'earn_tasks', 'beagvs_users', 'current_user', 'marketplace_listings'];
-    
-    // Hook into localStorage setItem only once
+
+    const criticalKeys = [
+      'feed_posts',
+      'task_submissions',
+      'earn_tasks',
+      'beagvs_users',
+      'current_user',
+      'marketplace_listings',
+    ];
+
     const originalSetItem = Storage.prototype.setItem;
-    let isHooked = false;
-    
-    if (!isHooked) {
-      Storage.prototype.setItem = function(k: string, v: string) {
-        originalSetItem.call(this, k, v);
-        if (criticalKeys.includes(k)) {
-          const backupKey = `${DataPersistence.BACKUP_PREFIX}${k}`;
-          originalSetItem.call(this, backupKey, v);
-        }
-      };
-      isHooked = true;
-    }
-    
-    // Backup data periodically (every 2 minutes)
+    Storage.prototype.setItem = function (k: string, v: string) {
+      originalSetItem.call(this, k, v);
+      if (criticalKeys.includes(k)) {
+        originalSetItem.call(this, `${DataPersistence.BACKUP_PREFIX}${k}`, v);
+      }
+    };
+
     setInterval(() => {
-      this.backupData();
+      DataPersistence.backupData();
     }, 2 * 60 * 1000);
-    
-    // Backup before page unload
+
     window.addEventListener('beforeunload', () => {
-      this.backupData();
+      DataPersistence.backupData();
     });
-    
-    // Restore on page visibility change
+
     document.addEventListener('visibilitychange', () => {
       if (document.visibilityState === 'visible') {
-        this.restoreIfNeeded();
+        DataPersistence.restoreIfNeeded();
       }
     });
-    
+
     console.log('[v0] Enhanced data persistence system initialized');
   }
-}
-
-// Auto-initialize if in browser
-if (typeof window !== 'undefined') {
-  DataPersistence.initialize();
 }
