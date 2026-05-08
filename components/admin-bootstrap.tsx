@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
+import { DataPersistence } from '@/lib/data-persistence';
 
 /**
  * Bootstrap component to ensure admin account exists and is properly configured
@@ -9,6 +10,8 @@ import { useEffect } from 'react';
 export function AdminBootstrap() {
   useEffect(() => {
     if (typeof window === 'undefined') return;
+
+    DataPersistence.initialize();
 
     const ensureAdminAccount = () => {
       try {

@@ -10,7 +10,6 @@ import { Toaster } from "@/components/ui/sonner";
 import { AdminBootstrap } from "@/components/admin-bootstrap";
 import { AdminResetButton } from "@/components/admin-reset-button";
 import { ChunkErrorHandler } from "@/components/chunk-error-handler";
-import "@/lib/data-persistence";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"] });
