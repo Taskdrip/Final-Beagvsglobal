@@ -15,22 +15,25 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Made with App Studio",
+  title: {
+    default: "Beagvs - Pi Network Marketplace",
+    template: "%s | Beagvs",
+  },
   description: "Beagvs - A secure marketplace for goods and services powered by Pi Network. Buy, sell, and ship with confidence using escrow-protected transactions.",
   alternates: {
     canonical: "/",
   },
   openGraph: {
     type: "website",
-    title: "Made with App Studio",
+    title: "Beagvs - Pi Network Marketplace",
     description: "Beagvs - A secure marketplace for goods and services powered by Pi Network.",
+    siteName: "Beagvs",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Made with App Studio",
+    title: "Beagvs - Pi Network Marketplace",
     description: "Beagvs - A secure marketplace for goods and services powered by Pi Network.",
   },
-    generator: 'v0.app'
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

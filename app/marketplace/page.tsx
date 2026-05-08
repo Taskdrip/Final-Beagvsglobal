@@ -4,7 +4,7 @@ import { MarketplaceContent } from '@/components/marketplace/marketplace-content
 import { Skeleton } from '@/components/ui/skeleton';
 
 export const metadata = {
-  title: 'Marketplace - Made with App Studio',
+  title: 'Marketplace - Beagvs',
   description: 'Browse and buy goods and services on Beagvs marketplace with secure Pi Network payments.',
 };
 

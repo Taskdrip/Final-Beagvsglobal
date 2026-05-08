@@ -79,7 +79,7 @@ const loadPiSDK = (): Promise<void> => {
 };
 
 /**
- * Requests authentication credentials from the parent window (App Studio) via postMessage.
+ * Requests authentication credentials from the parent window via postMessage.
  * Returns null if not in iframe, timeout, or missing token (non-fatal check).
  *
  * @returns {Promise<{accessToken: string, appId: string}|null>} Resolves with credentials or null
@@ -199,10 +199,10 @@ export const usePiNetworkAuthentication = () => {
   const initializePiAndAuthenticate = async () => {
     setError(null);
     try {
-      // Probe for parent credentials (App Studio iframe environment)
+      // Probe for parent credentials (iframe environment)
       const parentCredentials = await requestParentCredentials();
 
-      // If parent (App Studio) provides credentials, use iframe flow
+      // If parent provides credentials, use iframe flow
       if (parentCredentials) {
         setPiAccessToken(parentCredentials.accessToken);
         setAuthMessage("Logging in...");
