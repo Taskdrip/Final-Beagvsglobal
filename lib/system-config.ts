@@ -11,6 +11,7 @@ export const BACKEND_CONFIG = {
 export const BACKEND_URLS = {
   LOGIN: `${BACKEND_CONFIG.BASE_URL}/v1/login`,
   LOGIN_PREVIEW: `${BACKEND_CONFIG.BASE_URL}/v1/login/preview`,
+  CHAT: `${BACKEND_CONFIG.BASE_URL}/v1/chat`,
   GET_PRODUCTS: (appId: string) =>
     `${BACKEND_CONFIG.BASE_URL}/v1/apps/${appId}/products`,
   GET_PAYMENT: (paymentId: string) =>
