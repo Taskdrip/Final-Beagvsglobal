@@ -120,9 +120,9 @@ function timeAgo(dateStr: string) {
 export default function FeedPage() {
   const auth = useAuth();
   const user = auth?.user || null;
-  const [posts, setPosts] = useState<any[]>([]);
-  const [allPosts, setAllPosts] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [posts, setPosts] = useState<any[]>(SEED_POSTS);
+  const [allPosts, setAllPosts] = useState<any[]>(SEED_POSTS);
+  const [loading, setLoading] = useState(false);
   const [filter, setFilter] = useState<'all' | 'community' | 'popular' | 'sponsored'>('all');
   const [showCommentDialog, setShowCommentDialog] = useState(false);
   const [showTipDialog, setShowTipDialog] = useState(false);
@@ -139,7 +139,6 @@ export default function FeedPage() {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
-    if (typeof window === 'undefined') return;
     try {
       const stored = localStorage.getItem('feed_posts');
       if (stored) {
@@ -148,14 +147,10 @@ export default function FeedPage() {
         setPosts(parsed);
       } else {
         localStorage.setItem('feed_posts', JSON.stringify(SEED_POSTS));
-        setAllPosts(SEED_POSTS);
-        setPosts(SEED_POSTS);
       }
     } catch {
-      setAllPosts(SEED_POSTS);
-      setPosts(SEED_POSTS);
+      // keep SEED_POSTS
     }
-    setLoading(false);
   }, []);
 
   useEffect(() => {

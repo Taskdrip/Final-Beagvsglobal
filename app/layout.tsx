@@ -39,6 +39,27 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: `
+          (function() {
+            function handleChunkError(msg) {
+              if (msg && (msg.indexOf('Loading chunk') !== -1 || msg.indexOf('ChunkLoadError') !== -1)) {
+                var key = 'beagvs_chunk_reload';
+                var last = parseInt(sessionStorage.getItem(key) || '0');
+                if (Date.now() - last > 10000) {
+                  sessionStorage.setItem(key, Date.now().toString());
+                  window.location.reload();
+                }
+              }
+            }
+            window.addEventListener('error', function(e) { handleChunkError(e.message); });
+            window.addEventListener('unhandledrejection', function(e) {
+              var msg = e.reason && (e.reason.message || e.reason.toString());
+              handleChunkError(msg);
+            });
+          })();
+        ` }} />
+      </head>
       <body className={inter.className}>
         <ThemeProvider
           attribute="class"

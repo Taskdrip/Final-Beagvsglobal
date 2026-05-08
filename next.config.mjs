@@ -18,6 +18,7 @@ const nextConfig = {
   allowedDevOrigins: [
     '*.replit.dev',
     '*.janeway.replit.dev',
+    '*.worf.replit.dev',
     '*.repl.co',
     ...(process.env.REPLIT_DEV_DOMAIN ? [process.env.REPLIT_DEV_DOMAIN] : []),
   ],

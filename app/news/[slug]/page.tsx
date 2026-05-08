@@ -109,8 +109,8 @@ export default function NewsArticlePage() {
               <span>•</span>
               <div className="flex items-center gap-2">
                 <Calendar className="h-4 w-4" />
-                <time dateTime={article.publishedAt.toISOString()}>
-                  {article.publishedAt.toLocaleDateString('en-US', {
+                <time dateTime={new Date(article.publishedAt).toISOString()}>
+                  {new Date(article.publishedAt).toLocaleDateString('en-US', {
                     month: 'long',
                     day: 'numeric',
                     year: 'numeric'

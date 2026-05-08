@@ -185,8 +185,8 @@ export default function NewsPage() {
                     <div className="flex items-center gap-3 text-sm text-muted-foreground flex-shrink-0">
                       <div className="flex items-center gap-1">
                         <Calendar className="h-3 w-3" />
-                        <time dateTime={article.publishedAt.toISOString()}>
-                          {article.publishedAt.toLocaleDateString('en-US', {
+                        <time dateTime={new Date(article.publishedAt).toISOString()}>
+                          {new Date(article.publishedAt).toLocaleDateString('en-US', {
                             month: 'short',
                             day: 'numeric',
                             year: 'numeric'

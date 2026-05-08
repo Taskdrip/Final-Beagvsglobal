@@ -92,7 +92,7 @@ const DIFFICULTY_COLOR: Record<string, string> = {
 
 export default function EarnPiPage() {
   const auth = useAuth();
-  const [tasks, setTasks] = useState<any[]>([]);
+  const [tasks, setTasks] = useState<any[]>(SEED_TASKS);
   const [userPoints, setUserPoints] = useState(0);
   const [completedIds, setCompletedIds] = useState<string[]>([]);
 
@@ -100,7 +100,6 @@ export default function EarnPiPage() {
   const isAuthenticated = auth?.isAuthenticated || false;
 
   useEffect(() => {
-    if (typeof window === 'undefined') return;
     try {
       const stored = localStorage.getItem('earn_tasks');
       let loadedTasks: any[] = [];
@@ -125,7 +124,6 @@ export default function EarnPiPage() {
       }
     } catch (error) {
       console.error('[v0] Error loading tasks:', error);
-      setTasks(SEED_TASKS);
     }
   }, [user]);
 
