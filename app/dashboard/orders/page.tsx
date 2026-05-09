@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from 'react';
+import { Suspense, useEffect } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, Package, Truck, CheckCircle2, Clock } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -13,6 +13,14 @@ import { toast } from 'sonner';
 import { ReviewDialog } from '@/components/reviews/review-dialog';
 
 export default function OrdersPage() {
+  return (
+    <Suspense fallback={<div className="container mx-auto px-4 py-16 text-center"><p className="text-muted-foreground">Loading orders...</p></div>}>
+      <OrdersContent />
+    </Suspense>
+  );
+}
+
+function OrdersContent() {
   const { user, isAuthenticated } = useAuth();
   const searchParams = useSearchParams();
   const router = useRouter();

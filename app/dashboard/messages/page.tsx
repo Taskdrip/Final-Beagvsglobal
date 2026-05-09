@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, Suspense } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import Image from 'next/image';
@@ -36,6 +36,14 @@ interface Conversation {
 }
 
 export default function MessagesPage() {
+  return (
+    <Suspense fallback={<div className="container mx-auto px-4 py-16 text-center"><p className="text-muted-foreground">Loading messages...</p></div>}>
+      <MessagesContent />
+    </Suspense>
+  );
+}
+
+function MessagesContent() {
   const { user, isAuthenticated } = useAuth();
   const router = useRouter();
   const [conversations, setConversations] = useState<Conversation[]>([]);
