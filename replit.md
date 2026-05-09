@@ -78,6 +78,10 @@ A Pi Network-powered secure marketplace for buying, selling, and shipping goods 
 - `duration-[8000ms]` Tailwind class is ambiguous (harmless warning from `hero-slider.tsx`)
 - Auth context `handleAuthSuccess` shows toast errors and keeps modal open on wrong password (does NOT silently close)
 - Earn tasks / feed posts are seeded client-side in useEffect — initial SSR render shows empty, populates on hydration
+- `app/marketplace/[id]/page.tsx` uses `useState` initializer to synchronously resolve mock listing — avoids async loading skeleton
+- `messages/page.tsx` uses Suspense wrapper around `useSearchParams()` (Next.js 15 requirement)
+- Hero slider does NOT pause on mouseEnter/mouseLeave — only the click-to-pause button works (avoids iframe hover issues)
+- `products/[id]`, `real-estate/[id]`, `services/[id]` pages fallback to `mockListings` if localStorage is empty; filter by `type` field not `category`
 
 ## Pointers
 

@@ -9,6 +9,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ArrowLeft, Briefcase, Clock, MapPin } from 'lucide-react';
 import { toast } from 'sonner';
+import { mockListings } from '@/lib/mock-data';
 
 export default function ServiceDetailPage({ params }: { params: { id: string } }) {
   const router = useRouter();
@@ -16,15 +17,17 @@ export default function ServiceDetailPage({ params }: { params: { id: string } }
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const listings = JSON.parse(localStorage.getItem('marketplace_listings') || '[]');
-      const found = listings.find((l: any) => l.id === params.id && l.category === 'services');
-      
-      if (found) {
-        setService(found);
-      }
-      setLoading(false);
+    try {
+      const stored = localStorage.getItem('marketplace_listings');
+      const localListings = stored ? JSON.parse(stored) : [];
+      const found = localListings.find((l: any) => l.id === params.id && l.type === 'services')
+        || mockListings.find((l: any) => l.id === params.id && l.type === 'services');
+      if (found) setService(found);
+    } catch {
+      const found = mockListings.find((l: any) => l.id === params.id && l.type === 'services');
+      if (found) setService(found);
     }
+    setLoading(false);
   }, [params.id]);
 
   const handleContactSeller = () => {

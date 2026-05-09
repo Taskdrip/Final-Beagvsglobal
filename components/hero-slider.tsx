@@ -160,8 +160,6 @@ export function HeroSlider() {
   return (
     <section
       className="relative w-full min-h-screen overflow-hidden bg-black"
-      onMouseEnter={() => setIsPaused(true)}
-      onMouseLeave={() => setIsPaused(false)}
     >
       {/* Background slides */}
       {SLIDES.map((s, i) => (

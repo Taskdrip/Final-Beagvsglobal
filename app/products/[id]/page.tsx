@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { ShoppingCart, ArrowLeft, Package, Star } from 'lucide-react';
 import { useCart } from '@/contexts/cart-context';
 import { toast } from 'sonner';
+import { mockListings } from '@/lib/mock-data';
 
 export default function ProductDetailPage({ params }: { params: { id: string } }) {
   const router = useRouter();
@@ -18,16 +19,17 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      // Load from marketplace listings
-      const listings = JSON.parse(localStorage.getItem('marketplace_listings') || '[]');
-      const found = listings.find((l: any) => l.id === params.id && l.category === 'goods');
-      
-      if (found) {
-        setProduct(found);
-      }
-      setLoading(false);
+    try {
+      const stored = localStorage.getItem('marketplace_listings');
+      const localListings = stored ? JSON.parse(stored) : [];
+      const found = localListings.find((l: any) => l.id === params.id && l.type === 'goods')
+        || mockListings.find((l: any) => l.id === params.id && l.type === 'goods');
+      if (found) setProduct(found);
+    } catch {
+      const found = mockListings.find((l: any) => l.id === params.id && l.type === 'goods');
+      if (found) setProduct(found);
     }
+    setLoading(false);
   }, [params.id]);
 
   const handleAddToCart = () => {

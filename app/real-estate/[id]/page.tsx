@@ -9,6 +9,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ArrowLeft, Home, MapPin, Bed, Bath, Maximize } from 'lucide-react';
 import { toast } from 'sonner';
+import { mockListings } from '@/lib/mock-data';
 
 export default function RealEstateDetailPage({ params }: { params: { id: string } }) {
   const router = useRouter();
@@ -16,15 +17,17 @@ export default function RealEstateDetailPage({ params }: { params: { id: string 
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const listings = JSON.parse(localStorage.getItem('marketplace_listings') || '[]');
-      const found = listings.find((l: any) => l.id === params.id && l.category === 'real-estate');
-      
-      if (found) {
-        setProperty(found);
-      }
-      setLoading(false);
+    try {
+      const stored = localStorage.getItem('marketplace_listings');
+      const localListings = stored ? JSON.parse(stored) : [];
+      const found = localListings.find((l: any) => l.id === params.id && l.type === 'real_estate')
+        || mockListings.find((l: any) => l.id === params.id && l.type === 'real_estate');
+      if (found) setProperty(found);
+    } catch {
+      const found = mockListings.find((l: any) => l.id === params.id && l.type === 'real_estate');
+      if (found) setProperty(found);
     }
+    setLoading(false);
   }, [params.id]);
 
   const handleContactSeller = () => {
